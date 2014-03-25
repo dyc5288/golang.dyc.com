@@ -3,11 +3,15 @@ package main
 // http://www.ttbiji.com/
 
 import (
+	"crypto/md5"
 	"fmt"
 	"html/template"
+	"io"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
+	"time"
 )
 
 func route() {
@@ -28,10 +32,32 @@ func index(w http.ResponseWriter, r *http.Request) {
 func login(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("path", r.URL.Path)
 	if r.Method == "GET" {
-		t, _ := template.ParseFiles("login.gtpl")
-		t.Execute(w, nil)
-	} else {
+		curtime := time.Now().Unix()
+		h := md5.New()
+		io.WriteString(h, strconv.FormatInt(curtime, 10))
+		token := fmt.Sprintf("%x", h.Sum(nil))
+		fmt.Println("token:", token)
 
+		t, _ := template.ParseFiles("login.gtpl")
+		t.Execute(w, token)
+	} else {
+		r.ParseForm()
+		username := r.Form["username"][0]
+		password := r.Form["password"][0]
+
+		if len(username) == 0 {
+			fmt.Fprintln(w, "username not empty")
+			return
+		}
+
+		if len(password) == 0 {
+			fmt.Fprintln(w, "password not empty")
+			return
+		}
+
+		fmt.Println("username:", template.HTMLEscapeString(username))
+		fmt.Println("password:", template.HTMLEscapeString(password))
+		template.HTMLEscape(w, []byte(username))
 	}
 }
 
