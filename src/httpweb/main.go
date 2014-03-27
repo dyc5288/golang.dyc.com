@@ -65,7 +65,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		db, err := sql.Open("mysql", "astaxie:astaxie@/gonote?charset=utf8")
+		db, err := sql.Open("mysql", "dyc5288:d54321@/gonote?charset=utf8")
 		checkErr(err)
 		var user = get_user(db, username)
 
