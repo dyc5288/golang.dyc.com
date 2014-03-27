@@ -4,7 +4,10 @@ package main
 
 import (
 	"crypto/md5"
+	"database/sql"
+	"encoding/hex"
 	"fmt"
+	"github.com/Go-SQL-Driver/MySQL"
 	"html/template"
 	"io"
 	"log"
@@ -13,6 +16,13 @@ import (
 	"strings"
 	"time"
 )
+
+type user_obj struct {
+	user_id  int
+	username string
+	password string
+	created  string
+}
 
 func route() {
 	http.HandleFunc("/", index)
@@ -46,12 +56,26 @@ func login(w http.ResponseWriter, r *http.Request) {
 		password := r.Form["password"][0]
 
 		if len(username) == 0 {
-			fmt.Fprintln(w, "username not empty")
+			fmt.Fprintln(w, "用户名不能为空")
 			return
 		}
 
 		if len(password) == 0 {
-			fmt.Fprintln(w, "password not empty")
+			fmt.Fprintln(w, "密码不能为空")
+			return
+		}
+
+		db, err := sql.Open("mysql", "astaxie:astaxie@/gonote?charset=utf8")
+		checkErr(err)
+		var user = get_user(db, username)
+
+		if user.user_id == 0 {
+			fmt.Fprintln(w, "用户不存在")
+			return
+		}
+
+		if mymd5(password) != user.password {
+			fmt.Fprintln(w, "密码错误")
 			return
 		}
 
@@ -75,6 +99,53 @@ func note(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Fprintf(w, "hello note")
+}
+
+// 插入数据
+func add_user(db sql.DB, username string, password string) int64 {
+	stmt, err := db.Prepare("INSERT userinfo SET username=?,password=?,created=?")
+	checkErr(err)
+
+	password = mymd5(password)
+	res, err := stmt.Exec(username, password)
+
+	id, err := res.LastInsertId()
+	checkErr(err)
+
+	return id
+}
+
+// 获取用户信息
+func get_user(db *sql.DB, username string) user_obj {
+	rows, err := db.Query("SELECT * FROM userinfo where username='" + username + "'")
+	checkErr(err)
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var user_id int
+		var username string
+		var password string
+		var created string
+		err = rows.Scan(&user_id, &username, &password, &created)
+		checkErr(err)
+		return user_obj{user_id, username, password, created}
+	}
+
+	return user_obj{0, "", "", ""}
+}
+
+func mymd5(str string) string {
+	m := md5.New()
+	m.Write([]byte(str))
+	return hex.EncodeToString(m.Sum(nil))
+}
+
+/* 异常流程 */
+func checkErr(err error) {
+	if err != nil {
+		panic(err)
+	}
 }
 
 func main() {
