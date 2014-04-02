@@ -70,7 +70,7 @@
 				type:"post",
                 success:function(json){
                     if (json.state) {
-						location.href="/";
+						location.href="/note";
 					} else {
 						err.html(json.message);
 						err.show();

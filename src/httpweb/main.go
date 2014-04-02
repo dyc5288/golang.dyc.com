@@ -39,6 +39,7 @@ type user_obj struct {
 func route() {
 	http.HandleFunc("/", index)
 	http.HandleFunc("/login", login)
+	http.HandleFunc("/register", register)
 	http.HandleFunc("/note", note)
 }
 
@@ -98,7 +99,8 @@ func login_submit(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("username:", template.HTMLEscapeString(username))
 	fmt.Println("password:", template.HTMLEscapeString(password))
-	template.HTMLEscape(w, []byte(username))
+	//template.HTMLEscape(w, []byte(username))
+	res.State = true
 	fmt.Fprintln(w, json_encode(res))
 }
 
@@ -119,21 +121,81 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/* 注册提交 */
+func register_submit(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-type", "text/json; charset=utf-8")
+	var res = MyReturn{State: false, Message: ""}
+	r.ParseForm()
+	username := r.Form["username"][0]
+	password := r.Form["password"][0]
+
+	if len(username) == 0 {
+		res.Message = "亲爱的，用户名不能为空"
+		fmt.Fprintln(w, json_encode(res))
+		return
+	}
+
+	if len(password) == 0 {
+		res.Message = "亲爱的，密码不能为空"
+		fmt.Fprintln(w, json_encode(res))
+		return
+	}
+
+	db, err := sql.Open("mysql", "root:d54321@/gonote?charset=utf8")
+	checkErr(err)
+	var user = get_user(db, username)
+
+	if user.user_id == 0 {
+		res.Message = "亲爱的，用户不存在"
+		fmt.Fprintln(w, json_encode(res))
+		return
+	}
+
+	if mymd5(password) != user.password {
+		res.Message = "亲爱的，密码错误"
+		fmt.Fprintln(w, json_encode(res))
+		return
+	}
+
+	fmt.Println("username:", template.HTMLEscapeString(username))
+	fmt.Println("password:", template.HTMLEscapeString(password))
+	//template.HTMLEscape(w, []byte(username))
+	res.State = true
+	fmt.Fprintln(w, json_encode(res))
+}
+
+/* 注册首页 */
+func register(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("path", r.URL.Path)
+	if r.Method == "GET" {
+		curtime := time.Now().Unix()
+		h := md5.New()
+		io.WriteString(h, strconv.FormatInt(curtime, 10))
+		token := fmt.Sprintf("%x", h.Sum(nil))
+		fmt.Println("token:", token)
+
+		t, _ := template.ParseFiles("template/register.gtpl")
+		t.Execute(w, token)
+	} else {
+		register_submit(w, r)
+	}
+}
+
 /* 记事本接口 */
 func note(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("path", r.URL.Path)
-	r.ParseForm()
-	fmt.Println(r.Form)
-	fmt.Println("path", r.URL.Path)
-	fmt.Println("scheme", r.URL.Scheme)
-	fmt.Println(r.Form["url_long"])
+	if r.Method == "GET" {
+		curtime := time.Now().Unix()
+		h := md5.New()
+		io.WriteString(h, strconv.FormatInt(curtime, 10))
+		token := fmt.Sprintf("%x", h.Sum(nil))
+		fmt.Println("token:", token)
 
-	for k, v := range r.Form {
-		fmt.Println("key:", k)
-		fmt.Println("val:", strings.Join(v, ""))
+		t, _ := template.ParseFiles("template/note.gtpl")
+		t.Execute(w, token)
+	} else {
+		register_submit(w, r)
 	}
-
-	fmt.Fprintf(w, "hello note")
 }
 
 /* 插入数据 */
