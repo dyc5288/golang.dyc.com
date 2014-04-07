@@ -17,7 +17,7 @@
         <div class="container"> 
           <h1><a href="/">天天笔记</a></h1> 
           <h2>一款最好用的免费网络在线记事本</h2> 
-            <a href="/login" class="login">登录</a>
+            <a href="/login/" class="login">登录</a>
         </div>
       </div>
       <div id="page">

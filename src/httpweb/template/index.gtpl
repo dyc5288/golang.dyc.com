@@ -17,14 +17,14 @@
         <div class="container"> 
           <h1><a href="/">天天笔记</a></h1> 
           <h2>一款最好用的免费网络在线记事本</h2> 
-            <a href="/login" class="login">登录</a>
+            <a href="/login/" class="login">登录</a>
         </div>
       </div>
       <div id='menu' style="background:url('/images/banner.jpg');"> 
   <div class="container">
     <div id="hero" style="filter:alpha(opacity=0); opacity:0; -moz-opacity:0; -khtml-opacity:0;";><img src="/images/home-hero.png" alt="天天笔记" data-pinit="registered"></div>
     <div class="slogan"><h1>天天笔记</h1><small>一款风格简洁、操作方便、体验良好的免费网络在线记事本|专门针对电信和联通进行优化，加快数据访问速度|高质量硬盘、定期数据备份，用户数据加密，支持数据导出|文档共享功能，方便您将信息分享给家人、同事、或朋友们|支持手机在线访问，随时随地浏览及编辑、速度快、节省流量</small><p>
-      <a href="/register" class="button noline">立即注册</a>
+      <a href="/register/" class="button noline">立即注册</a>
       </p></div>
   </div>
 </div>

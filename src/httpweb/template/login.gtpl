@@ -17,15 +17,15 @@
         <div class="container"> 
           <h1><a href="/">115笔记</a></h1> 
           <h2>在线记事本</h2> 
-            <a href="/login" class="login">登录</a>
+            <a href="/login/" class="login">登录</a>
         </div>
       </div>
       
 <div id="welcome">
-	<a id="toggle_register_login" href="/register">创建新账号</a>
+	<a id="toggle_register_login" href="/register/">创建新账号</a>
 	<h3>登录</h3>
 
-	<form accept-charset="UTF-8" action="/login" class="new_user" id="new_user" method="post"><div style="margin:0;padding:0;display:inline"></div>
+	<form accept-charset="UTF-8" action="/login/" class="new_user" id="new_user" method="post"><div style="margin:0;padding:0;display:inline"></div>
 
 		<span class="label label-warning" id="js_err" style="display:none;"></span>
 		<table align="center" class="table" style="" rules=none>
@@ -64,13 +64,13 @@
 				return false;
 			}
 			$.ajax({
-                url:"/login",
+                url:"/login/",
 				data:{username:user_name, password:user_pass},
                 dataType:"json",
 				type:"post",
                 success:function(json){
                     if (json.state) {
-						location.href="/note";
+						location.href="/note/";
 					} else {
 						err.html(json.message);
 						err.show();

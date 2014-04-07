@@ -3,6 +3,8 @@ package main
 // http://www.ttbiji.com/
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/md5"
 	"database/sql"
 	"encoding/hex"
@@ -15,11 +17,19 @@ import (
 	"log"
 	_ "net"
 	"net/http"
-	_ "os"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 )
+
+/* aes加密的key */
+var aes_key = "34jbfhg3gnhs90ds1gj1vhjfcsdf4sdv"
+var md5_key = "dfgs435vh345"
+var md6_key = "fgh52dgfd34f"
+
+/* IV */
+var commonIV = []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
 
 /* json返回对象 */
 type MyReturn struct {
@@ -38,9 +48,10 @@ type user_obj struct {
 /* 路由 */
 func route() {
 	http.HandleFunc("/", index)
-	http.HandleFunc("/login", login)
-	http.HandleFunc("/register", register)
-	http.HandleFunc("/note", note)
+	http.HandleFunc("/login/", login)
+	http.HandleFunc("/register/", register)
+	http.HandleFunc("/logout/", logout)
+	http.HandleFunc("/note/", note)
 }
 
 /* 其他 */
@@ -55,6 +66,13 @@ func index(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, file)
 		return
 	} else {
+		username := get_currinfo(r)
+
+		if username != "" {
+			fmt.Fprintln(w, "<script type='text/javascript'>top.window.location.href='/note/';</script>")
+			return
+		}
+
 		token := ""
 		t, _ := template.ParseFiles("template/index.gtpl")
 		t.Execute(w, token)
@@ -97,6 +115,7 @@ func login_submit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	set_currinfo(w, username)
 	fmt.Println("username:", template.HTMLEscapeString(username))
 	fmt.Println("password:", template.HTMLEscapeString(password))
 	//template.HTMLEscape(w, []byte(username))
@@ -106,6 +125,14 @@ func login_submit(w http.ResponseWriter, r *http.Request) {
 
 /* 登录首页 */
 func login(w http.ResponseWriter, r *http.Request) {
+	username := get_currinfo(r)
+	fmt.Println("lusername:" + username)
+
+	if username != "" {
+		fmt.Fprintln(w, "<script type='text/javascript'>top.window.location.href='/note/';</script>")
+		return
+	}
+
 	fmt.Println("path", r.URL.Path)
 	if r.Method == "GET" {
 		curtime := time.Now().Unix()
@@ -119,6 +146,12 @@ func login(w http.ResponseWriter, r *http.Request) {
 	} else {
 		login_submit(w, r)
 	}
+}
+
+/* 退出登录 */
+func logout(w http.ResponseWriter, r *http.Request) {
+	set_currinfo(w, "")
+	fmt.Fprintln(w, "<script type='text/javascript'>top.window.location.href='/login/';</script>")
 }
 
 /* 注册提交 */
@@ -183,6 +216,13 @@ func register(w http.ResponseWriter, r *http.Request) {
 
 /* 记事本接口 */
 func note(w http.ResponseWriter, r *http.Request) {
+	username := get_currinfo(r)
+	fmt.Println("nusername:" + username)
+	if username == "" {
+		fmt.Fprintln(w, "<script type='text/javascript'>top.window.location.href='/login/';</script>")
+		return
+	}
+
 	fmt.Println("path", r.URL.Path)
 	if r.Method == "GET" {
 		curtime := time.Now().Unix()
@@ -234,11 +274,84 @@ func get_user(db *sql.DB, username string) user_obj {
 	return user_obj{0, "", "", ""}
 }
 
+/* 获取当前用户信息 */
+func get_currinfo(r *http.Request) string {
+	var username, _ = r.Cookie("username")
+	var userkey, _ = r.Cookie("userkey")
+
+	if username == nil || userkey == nil {
+		return ""
+	}
+
+	fmt.Println("username:" + username.Value)
+	fmt.Println("userkey:" + userkey.Value)
+	ukey := cookie_arithmetic(username.Value)
+
+	if ukey != userkey.Value {
+		return ""
+	}
+
+	return username.Value
+}
+
+/* 设置当前用户信息 */
+func set_currinfo(w http.ResponseWriter, username string) {
+	expiration := time.Now()
+	expiration = expiration.AddDate(1, 0, 0)
+	cookie := http.Cookie{Name: "username", Path: "/", Value: username, Expires: expiration, HttpOnly: true}
+	http.SetCookie(w, &cookie)
+	key := cookie_arithmetic(username)
+	fmt.Println("login:" + username)
+	fmt.Println("key:" + key)
+	cookie1 := http.Cookie{Name: "userkey", Path: "/", Value: key, Expires: expiration, HttpOnly: true}
+	http.SetCookie(w, &cookie1)
+}
+
+/* 设置当前用户信息 */
+func cookie_arithmetic(str string) string {
+	res := mymd5(mymd5(str+md5_key) + md6_key)
+	return res
+}
+
 /* md5函数封装 */
 func mymd5(str string) string {
 	m := md5.New()
 	m.Write([]byte(str))
 	return hex.EncodeToString(m.Sum(nil))
+}
+
+/* aes加密 */
+func aes_encode(str string) string {
+	plaintext := []byte(str)
+	c, err := aes.NewCipher([]byte(aes_key))
+
+	if err != nil {
+		fmt.Printf("Error: NewCipher(%d bytes) = %s", len(aes_key), err)
+		os.Exit(-1)
+	}
+
+	cfb := cipher.NewCFBEncrypter(c, commonIV)
+	ciphertext := make([]byte, len(plaintext))
+	cfb.XORKeyStream(ciphertext, plaintext)
+	fmt.Printf("%s=>%x\n", plaintext, ciphertext)
+	return string(ciphertext)
+}
+
+/* aes解密密 */
+func aes_decode(str string) string {
+	ciphertext := []byte(str)
+	c, err := aes.NewCipher([]byte(aes_key))
+
+	if err != nil {
+		fmt.Printf("Error: NewCipher(%d bytes) = %s", len(aes_key), err)
+		os.Exit(-1)
+	}
+
+	cfbdec := cipher.NewCFBDecrypter(c, commonIV)
+	plaintextCopy := make([]byte, len(ciphertext))
+	cfbdec.XORKeyStream(plaintextCopy, ciphertext)
+	fmt.Printf("%x=>%s\n", ciphertext, plaintextCopy)
+	return string(plaintextCopy)
 }
 
 /* MyReturn的json编码 */

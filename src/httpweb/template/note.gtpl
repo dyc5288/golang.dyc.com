@@ -20,7 +20,7 @@
           <div class="user">
     &nbsp;
                 当前用户：dyc5288 &nbsp;
-                <a href="/config">个人设置</a>
+                <!--<a href="/config">个人设置</a>-->
                 &nbsp;</div>
             <div style="float:right; margin-top:-35px;"><a href="/logout/" class="login">退出</a></div>
         </div>
