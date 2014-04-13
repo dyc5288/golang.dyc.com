@@ -11,7 +11,9 @@ import (
 	"encoding/json"
 	"fmt"
 	_ "github.com/Go-SQL-Driver/MySQL"
+	"github.com/astaxie/goredis"
 	_ "github.com/bitly/go-simplejson" // for json get
+	"helper"
 	"html/template"
 	"io"
 	"log"
@@ -27,6 +29,7 @@ import (
 var aes_key = "34jbfhg3gnhs90ds1gj1vhjfcsdf4sdv"
 var md5_key = "dfgs435vh345"
 var md6_key = "fgh52dgfd34f"
+var redis_cli goredis.Client
 
 /* IV */
 var commonIV = []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
@@ -52,6 +55,7 @@ func route() {
 	http.HandleFunc("/register/", register)
 	http.HandleFunc("/logout/", logout)
 	http.HandleFunc("/note/", note)
+	http.HandleFunc("/captcha/", captcha)
 }
 
 /* 其他 */
@@ -156,6 +160,8 @@ func logout(w http.ResponseWriter, r *http.Request) {
 
 /* 注册提交 */
 func register_submit(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("username:343")
+	return
 	w.Header().Set("Content-type", "text/json; charset=utf-8")
 	var res = MyReturn{State: false, Message: ""}
 	r.ParseForm()
@@ -365,11 +371,42 @@ func json_encode(obj MyReturn) string {
 	return string(body)
 }
 
+/* 设置redis缓存 */
+func SR(key string, value string) {
+	redis_cli.Set(key, []byte(value))
+}
+
+/* 获取redis缓存 */
+func GR(key string) string {
+	res, _ := redis_cli.Get(key)
+	return string(res)
+}
+
+/* 删除redis缓存 */
+func DR(key string) {
+	redis_cli.Del(key)
+}
+
 /* 异常流程 */
 func checkErr(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+/* 验证码 */
+func captcha(w http.ResponseWriter, req *http.Request) {
+	d := make([]byte, 4)
+	s := helper.NewLen(4)
+	ss := ""
+	d = []byte(s)
+	for v := range d {
+		d[v] %= 10
+		ss += strconv.FormatInt(int64(d[v]), 32)
+	}
+	w.Header().Set("Content-Type", "image/png")
+	helper.NewImage(d, 100, 40).WriteTo(w)
+	fmt.Println(ss)
 }
 
 /* 主线程 */

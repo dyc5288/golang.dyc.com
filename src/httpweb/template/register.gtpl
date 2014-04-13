@@ -58,8 +58,8 @@
   }
 </style>
 
-<img alt="captcha" src="/simple_captcha?code=b9f1592bc611455f8ac8b665a8b4270da8c11ef9&amp;time=1396452114" />
-<input autocomplete="off" id="captcha" name="captcha" placeholder="" required="required" type="text" /><input id="captcha_key" name="captcha_key" type="hidden" value="b9f1592bc611455f8ac8b665a8b4270da8c11ef9" />
+<img alt="captcha" src="/captcha/?code={{.}}&amp;time=1396452114" />
+<input autocomplete="off" id="captcha" name="captcha" placeholder="" required="required" type="text" /><input id="captcha_key" name="captcha_key" type="hidden" value="{{.}}" />
 </td>
 			<td class="tip">为了确保您不是一个机器人，请正确输入</td>
 		</tr>
@@ -69,7 +69,7 @@
 					<i class="icon-remove"></i>
 					<span class="label label-important"></span>
 				</div>
-				<input class="btn btn-primary btn-large" id="btnReg" name="commit" type="submit" value="注册用户" /> &nbsp;
+				<input class="btn btn-primary btn-large" id="btnReg" name="commit" type="button" value="注册用户" /> &nbsp;
 				<button class="btn btn-large" name="button" onclick="__reset(); return false;" type="submit">重新填写</button>
 			</td>
 		</tr>
@@ -94,6 +94,16 @@ function __reset(){
 
 $().ready(function(){
 	// 错误提示语
+	
+	function get_data() {
+		var res = {};
+		$("input").each(function(){
+			var name = $(this).attr("name");
+			var value = $(this).val();
+			res[name] = value;
+		});
+		return res;
+	}
 
 	// 绑定注册按钮事件
 	$('#btnReg').click(function(){
@@ -114,7 +124,28 @@ $().ready(function(){
 				return false;
 			}
 		});
-		return result;
+		
+		var data = get_data();
+		console.log(data);
+		
+		if (result) {
+			$.ajax({
+               	url:"/register/",
+				data:data,
+	               	dataType:"json",
+					type:"post",
+	               	success:function(json){
+	                   if (json.state) {
+						location.href="/login/?type=reg_success";
+					} else {
+						err.html(json.message);
+						err.show();
+					}
+               	}
+           	});
+		}
+		
+		return false;
 	});
 });
 </script>
