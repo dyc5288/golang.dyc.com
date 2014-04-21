@@ -30,22 +30,22 @@
 		<table class="table">
 		<tr>
 			<td>用户名：</td>
-			<td><input autofocus="autofocus" class="w120" id="user_name" name="user[name]" required="required" size="30" type="text" /></td>
+			<td><input autofocus="autofocus" class="w120" id="user_name" name="username" required="required" size="30" type="text" /></td>
 			<td class="tip">该名称用于登陆，不能少于4个字符</td>
 		</tr>
 		<tr>
 			<td>登录密码：</td>
-			<td><input class="w120" id="user_pass" name="user[pass]" required="required" size="30" type="password" /></td>
+			<td><input class="w120" id="user_pass" name="password" required="required" size="30" type="password" /></td>
 			<td class="tip">不能少于6个字符，请小心输入并牢记</td>
 		</tr>
 		<tr>
 			<td>电子邮箱</td>
-			<td><input class="w200" id="user_email" name="user[email]" required="required" size="30" type="email" /></td>
+			<td><input class="w200" id="user_email" name="email" required="required" size="30" type="email" /></td>
 			<td class="tip">用于接收注册信息，以及找回密码</td>
 		</tr>
 		<tr>
 			<td>手机号码：</td>
-			<td><input class="w120" id="user_mobile" maxlength="11" name="user[mobile]" pattern="[0-9]{11}" size="11" type="text" /></td>
+			<td><input class="w120" id="user_mobile" maxlength="11" name="mobile" pattern="[0-9]{11}" size="11" type="text" /></td>
 			<td class="tip">如果您希望通过手机找回密码，请正确输入</td>
 		</tr>
 		<tr>
@@ -59,7 +59,7 @@
 </style>
 
 <img alt="captcha" src="/captcha/?code={{.}}&amp;time=1396452114" />
-<input autocomplete="off" id="captcha" name="captcha" placeholder="" required="required" type="text" /><input id="captcha_key" name="captcha_key" type="hidden" value="{{.}}" />
+<input autocomplete="off" id="captcha" name="captcha" placeholder="" maxlength="4" required="required" type="text" /><input id="captcha_key" name="captcha_key" type="hidden" value="{{.}}" />
 </td>
 			<td class="tip">为了确保您不是一个机器人，请正确输入</td>
 		</tr>

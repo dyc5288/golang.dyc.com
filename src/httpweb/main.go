@@ -160,22 +160,23 @@ func logout(w http.ResponseWriter, r *http.Request) {
 
 /* 注册提交 */
 func register_submit(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("username:343")
-	return
 	w.Header().Set("Content-type", "text/json; charset=utf-8")
 	var res = MyReturn{State: false, Message: ""}
 	r.ParseForm()
 	username := r.Form["username"][0]
 	password := r.Form["password"][0]
+	email := r.Form["email"][0]
+	mobile := r.Form["mobile"][0]
+	captcha := r.Form["captcha"][0]
 
-	if len(username) == 0 {
-		res.Message = "亲爱的，用户名不能为空"
+	if len(username) < 6 || len(username) > 24 {
+		res.Message = "用户名必须为6~24位字符串"
 		fmt.Fprintln(w, json_encode(res))
 		return
 	}
 
-	if len(password) == 0 {
-		res.Message = "亲爱的，密码不能为空"
+	if len(password) < 6 {
+		res.Message = "用户名必须为6位以上"
 		fmt.Fprintln(w, json_encode(res))
 		return
 	}
@@ -198,7 +199,9 @@ func register_submit(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("username:", template.HTMLEscapeString(username))
 	fmt.Println("password:", template.HTMLEscapeString(password))
-	//template.HTMLEscape(w, []byte(username))
+	fmt.Println("email:", template.HTMLEscapeString(email))
+	fmt.Println("mobile:", template.HTMLEscapeString(mobile))
+	fmt.Println("captcha:", template.HTMLEscapeString(captcha))
 	res.State = true
 	fmt.Fprintln(w, json_encode(res))
 }
@@ -405,6 +408,7 @@ func captcha(w http.ResponseWriter, req *http.Request) {
 		ss += strconv.FormatInt(int64(d[v]), 32)
 	}
 	w.Header().Set("Content-Type", "image/png")
+	SR("C_100", string(d))
 	helper.NewImage(d, 100, 40).WriteTo(w)
 	fmt.Println(ss)
 }
