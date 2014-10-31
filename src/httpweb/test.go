@@ -33,7 +33,7 @@ type Server struct {
 	ServerIP string `json:"serverIP,omitempty"`
 }
 
-func main() {
+func maint() {
 	s := Server{
 		ID:          "3",
 		ServerName:  `Go "1.0" `,

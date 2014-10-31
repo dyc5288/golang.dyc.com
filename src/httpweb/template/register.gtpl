@@ -32,7 +32,7 @@
 		<tr>
 			<td></td>
 			<td colspan="2"><span class="label label-warning" id="js_err" style="display:none;"></span></td>
-		</tr>
+		</tr>httpweb
 		<tr>
 			<td>用户名：</td>
 			<td><input autofocus="autofocus" class="w120" id="user_name" name="username" required="required" size="30" type="text" /></td>

@@ -103,7 +103,7 @@ func login_submit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db, err := sql.Open("mysql", "root:d54321@/gonote?charset=utf8")
+	db, err := sql.Open("mysql", "dyc5288:d54321@tcp(192.168.33.88:3306)/gonote?charset=utf8")
 	checkErr(err)
 	var user = get_user(db, username)
 
@@ -406,5 +406,7 @@ func main() {
 
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
+	} else {
+		fmt.Println("start:")
 	}
 }

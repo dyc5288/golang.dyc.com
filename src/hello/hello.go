@@ -1,5 +1,5 @@
-// hello project hello.go
-package hello
+// hello  project hello.go
+package main
 
 import (
 	"fmt"
