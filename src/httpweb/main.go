@@ -165,9 +165,9 @@ func register_submit(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	username := r.Form["username"][0]
 	password := r.Form["password"][0]
-	email := r.Form["email"][0]
-	mobile := r.Form["mobile"][0]
-	captcha := r.Form["captcha"][0]
+	//email := r.Form["email"][0]
+	//mobile := r.Form["mobile"][0]
+	//captcha := r.Form["captcha"][0]
 
 	if len(username) < 6 || len(username) > 24 {
 		res.Message = "用户名必须为6~24位字符串"
@@ -185,25 +185,11 @@ func register_submit(w http.ResponseWriter, r *http.Request) {
 	checkErr(err)
 	var user = get_user(db, username)
 
-	if user.user_id == 0 {
-		res.Message = "亲爱的，用户不存在"
+	if user.user_id != 0 {
+		res.Message = "用户已存在，请输入其他用户名"
 		fmt.Fprintln(w, json_encode(res))
 		return
 	}
-
-	if mymd5(password) != user.password {
-		res.Message = "亲爱的，密码错误"
-		fmt.Fprintln(w, json_encode(res))
-		return
-	}
-
-	fmt.Println("username:", template.HTMLEscapeString(username))
-	fmt.Println("password:", template.HTMLEscapeString(password))
-	fmt.Println("email:", template.HTMLEscapeString(email))
-	fmt.Println("mobile:", template.HTMLEscapeString(mobile))
-	fmt.Println("captcha:", template.HTMLEscapeString(captcha))
-	res.State = true
-	fmt.Fprintln(w, json_encode(res))
 }
 
 /* 注册首页 */

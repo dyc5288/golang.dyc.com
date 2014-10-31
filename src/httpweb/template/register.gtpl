@@ -27,7 +27,12 @@
 	<div class="content">
 
 		<form accept-charset="UTF-8" action="/register" class="new_user" id="new_user" method="post"><div style="margin:0;padding:0;display:inline"><input name="utf8" type="hidden" value="&#x2713;" /><input name="authenticity_token" type="hidden" value="j3j1p9zYLanR6VCqtcwCx1sJBSUOQBnMUWHrsEFg2F4=" /></div>
+		
 		<table class="table">
+		<tr>
+			<td></td>
+			<td colspan="2"><span class="label label-warning" id="js_err" style="display:none;"></span></td>
+		</tr>
 		<tr>
 			<td>用户名：</td>
 			<td><input autofocus="autofocus" class="w120" id="user_name" name="username" required="required" size="30" type="text" /></td>
@@ -94,6 +99,7 @@ function __reset(){
 
 $().ready(function(){
 	// 错误提示语
+	var err = $("#js_err");
 	
 	function get_data() {
 		var res = {};
@@ -145,6 +151,10 @@ $().ready(function(){
            	});
 		}
 		
+		return false;
+	});
+	$("input").on("focus",function(){
+		err.css("display", "none");
 		return false;
 	});
 });
