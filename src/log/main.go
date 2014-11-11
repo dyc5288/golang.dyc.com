@@ -62,7 +62,7 @@ func log_request(w http.ResponseWriter, r *http.Request) {
 
 	result := search_log(path, keyword, start, limit)
 	res.Data = result
-	fmt.Println(result)
+	//fmt.Println(result)
 }
 
 /* 搜索 */
