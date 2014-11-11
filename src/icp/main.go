@@ -141,6 +141,7 @@ func write_data(filename string, content string) int {
 	return res
 }
 
+/* 获取文件名 */
 func get_filename() string {
 	return "E:/git/golang.dyc.com/src/icp/test2.txt"
 }
@@ -335,6 +336,7 @@ func checkErr(err error) {
 /* 主线程 */
 func main() {
 	route()
+	fmt.Println("start listen 8809:")
 	err := http.ListenAndServe(":8889", nil)
 
 	if err != nil {
