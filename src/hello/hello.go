@@ -3,8 +3,10 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
+	"time"
 )
 
 func main() {
-	fmt.Printf("Hello, world. Sqrt(2) = %v\n", 10)
+	http.Post("http://192.168.33.88:8889/report/?", "application/json;charset=utf-8", body)
 }
