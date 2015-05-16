@@ -556,6 +556,7 @@ func main() {
 	SM("test", "test")
 	d := GM("test")
 	fmt.Println(d)
+	fmt.Println("start listen 8809:")
 	err := http.ListenAndServe(":8889", nil)
 
 	if err != nil {
