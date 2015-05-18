@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/bitly/go-simplejson"
+	"github.com/couchbase/go-couchbase"
 	"log"
 	"math"
 	"net/http"
@@ -28,6 +29,8 @@ type FILE_DATA struct {
 	Num  int
 }
 
+var DEBUG_LEVEl = false
+
 var _super2dec_arr = map[string]int{
 	"H": 0, "2": 1, "t": 2, "O": 3, "u": 4, "z": 5, "b": 6, "F": 7, "P": 8,
 	"V": 9, "E": 10, "3": 11, "8": 12, "5": 13, "x": 14, "f": 15, "X": 16,
@@ -37,6 +40,27 @@ var _super2dec_arr = map[string]int{
 	"y": 41, "J": 42, "j": 43, "s": 44, "r": 45, "4": 46, "o": 47, "G": 48,
 	"Q": 49, "1": 50, "K": 51, "9": 52, "S": 53, "l": 54, "e": 55, "g": 56,
 	"d": 57, "w": 58, "C": 59, "R": 60, "W": 61}
+
+var couchbase_server = map[string]map[int]map[string]string{
+	"imageinfo": {
+		0: {"ip": "10.10.0.216", "port": "8091", "bucket": "imageinfo", "prefix": "i"},
+		1: {"ip": "10.10.0.217", "port": "8091", "bucket": "imageinfo", "prefix": "i"},
+		2: {"ip": "10.10.0.218", "port": "8091", "bucket": "imageinfo", "prefix": "i"},
+		3: {"ip": "10.10.0.219", "port": "8091", "bucket": "imageinfo", "prefix": "i"},
+		4: {"ip": "10.10.0.220", "port": "8091", "bucket": "imageinfo", "prefix": "i"},
+		5: {"ip": "10.10.0.221", "port": "8091", "bucket": "imageinfo", "prefix": "i"}}}
+
+/* 初始化配置 */
+func init_config() {
+	if DEBUG_LEVEl {
+		couchbase_server = map[string]map[int]map[string]string{
+			"imageinfo": {
+				0: {"ip": "172.16.0.120", "port": "8091", "bucket": "imageinfo", "prefix": "i"},
+				1: {"ip": "172.16.0.121", "port": "8091", "bucket": "imageinfo", "prefix": "i"},
+				2: {"ip": "172.16.0.122", "port": "8091", "bucket": "imageinfo", "prefix": "i"}}}
+
+	}
+}
 
 /* 路由 */
 func route() {
@@ -143,7 +167,7 @@ func imgload(w http.ResponseWriter, r *http.Request) {
 
 			if static_gif {
 				if ttype == "" {
-
+					ttype = get_ttype(hash)
 				}
 
 				if ttype == "" || ttype != "gif" {
@@ -195,6 +219,12 @@ func make_imgload_sign(hash string, uid string, encode_level string) string {
 	res = strings.Replace(res, "+", ".", -1)
 	res = strings.Replace(res, "=", "", -1)
 	return res
+}
+
+/* 获取类型 */
+func get_ttype(hash string) string {
+	//bucket := connect_couchbase("imageinfo")
+	return ""
 }
 
 /* 获取网盘缩略图地址 */
@@ -369,6 +399,42 @@ func Substr(str string, start, length int) string {
 	return string(rs[start:end])
 }
 
+/* couchbase连接 */
+func connect_couchbase(key string) *couchbase.Bucket {
+	conf, err := couchbase_server[key]
+
+	if err == false {
+		return nil
+	}
+
+	for _, server := range conf {
+		u := "http://" + server["ip"] + ":" + server["port"] + "/"
+		client, err := couchbase.Connect(u)
+		fmt.Println("c:", u)
+		if err != nil {
+			fmt.Printf("Connect failed %v", err)
+			continue
+		}
+
+		cbpool, err := client.GetPool("default")
+		if err != nil {
+			fmt.Printf("Failed to connect to default pool %v", err)
+			continue
+		}
+
+		cbbucket, err := cbpool.GetBucketWithAuth(server["bucket"], server["bucket"], "")
+
+		if err != nil {
+			fmt.Printf("Failed to connect to bucket %s %v", server["bucket"], err)
+			continue
+		}
+
+		return cbbucket
+	}
+
+	return nil
+}
+
 /* base64编码*/
 func base64_encode(str string) string {
 	return base64.StdEncoding.EncodeToString([]byte(str))
@@ -404,6 +470,12 @@ func checkErr(err error) {
 func main() {
 	fmt.Println(time.Now().Format("2006-01-02 15:04:05") + " server start:")
 	route()
+	init_config()
+	bucket := connect_couchbase("imageinfo")
+	ob := map[string]interface{}{}
+	err1 := bucket.Get("ACC9D5333CC559EF05F4DFB39446C29EC9320735", &ob)
+	fmt.Println(err1, "|||||||||", ob)
+	fmt.Println(time.Now().Format("2006-01-02 15:04:05") + " server listen 8889:")
 	err := http.ListenAndServe(":8889", nil)
 
 	if err != nil {
