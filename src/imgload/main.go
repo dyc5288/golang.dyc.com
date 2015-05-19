@@ -183,9 +183,9 @@ func imgload(w http.ResponseWriter, r *http.Request) {
 		url = "http://q.115.com/static/images/404.gif"
 	}
 
-	fmt.Fprintln(w, url)
+	//fmt.Fprintln(w, url)
 	res.Message = url
-	//http.Redirect(w, r, url, http.StatusMovedPermanently)
+	http.Redirect(w, r, url, http.StatusMovedPermanently)
 }
 
 /* 获取参数 */
@@ -409,8 +409,9 @@ func connect_couchbase(key string) *couchbase.Bucket {
 
 	for _, server := range conf {
 		u := "http://" + server["ip"] + ":" + server["port"] + "/"
-		client, err := couchbase.Connect(u)
 		fmt.Println("c:", u)
+		client, err := couchbase.Connect(u)
+
 		if err != nil {
 			fmt.Printf("Connect failed %v", err)
 			continue
@@ -422,7 +423,7 @@ func connect_couchbase(key string) *couchbase.Bucket {
 			continue
 		}
 
-		cbbucket, err := cbpool.GetBucketWithAuth(server["bucket"], server["bucket"], "")
+		cbbucket, err := cbpool.GetBucket(server["bucket"])
 
 		if err != nil {
 			fmt.Printf("Failed to connect to bucket %s %v", server["bucket"], err)
@@ -472,8 +473,9 @@ func main() {
 	route()
 	init_config()
 	bucket := connect_couchbase("imageinfo")
-	ob := map[string]interface{}{}
-	err1 := bucket.Get("ACC9D5333CC559EF05F4DFB39446C29EC9320735", &ob)
+	//bucket.Set("i_test", 0, []string{"an", "example", "list"})
+	ob := []string{}
+	err1 := bucket.Get("i_ACC9D5333CC559EF05F4DFB39446C29EC9320735", &ob)
 	fmt.Println(err1, "|||||||||", ob)
 	fmt.Println(time.Now().Format("2006-01-02 15:04:05") + " server listen 8889:")
 	err := http.ListenAndServe(":8889", nil)
