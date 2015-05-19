@@ -29,7 +29,7 @@ type FILE_DATA struct {
 	Num  int
 }
 
-var DEBUG_LEVEl = false
+var DEBUG_LEVEl = true
 
 var _super2dec_arr = map[string]int{
 	"H": 0, "2": 1, "t": 2, "O": 3, "u": 4, "z": 5, "b": 6, "F": 7, "P": 8,
@@ -185,6 +185,7 @@ func imgload(w http.ResponseWriter, r *http.Request) {
 
 	//fmt.Fprintln(w, url)
 	res.Message = url
+	fmt.Println(url)
 	http.Redirect(w, r, url, http.StatusMovedPermanently)
 }
 
@@ -223,8 +224,28 @@ func make_imgload_sign(hash string, uid string, encode_level string) string {
 
 /* 获取类型 */
 func get_ttype(hash string) string {
-	//bucket := connect_couchbase("imageinfo")
-	return ""
+	fmt.Println("hash:", hash)
+	bucket := connect_couchbase("imageinfo")
+	//bucket.Set("i_ACC9D5333CC559EF05F4DFB39446C29EC9320735", 0, map[string]interface{}{"w": 180, "h": 107, "t": "jpeg"})
+	ob := map[string]interface{}{}
+	err := bucket.Get("i_"+hash, &ob)
+
+	if err != nil {
+		return ""
+	}
+
+	ttype, is := ob["t"]
+
+	if is == false {
+		return ""
+	}
+
+	switch ttype.(type) {
+	case string:
+		return ttype.(string)
+	default:
+		return ""
+	}
 }
 
 /* 获取网盘缩略图地址 */
@@ -472,11 +493,11 @@ func main() {
 	fmt.Println(time.Now().Format("2006-01-02 15:04:05") + " server start:")
 	route()
 	init_config()
-	bucket := connect_couchbase("imageinfo")
-	//bucket.Set("i_test", 0, []string{"an", "example", "list"})
-	ob := map[string]string{}
-	err1 := bucket.Get("i_ACC9D5333CC559EF05F4DFB39446C29EC9320735", &ob)
-	fmt.Println(err1, "|||||||||", ob)
+	//bucket := connect_couchbase("imageinfo")
+	//bucket.Set("i_ACC9D5333CC559EF05F4DFB39446C29EC9320735", 0, map[string]interface{}{"w": 180, "h": 107, "t": "jpeg"})
+	//ob := map[string]interface{}{}
+	//err1 := bucket.Get("i_ACC9D5333CC559EF05F4DFB39446C29EC9320735", &ob)
+	//fmt.Println(err1, "|||||||||", ob, ob["t"].(string))
 	fmt.Println(time.Now().Format("2006-01-02 15:04:05") + " server listen 8889:")
 	err := http.ListenAndServe(":8889", nil)
 
