@@ -474,7 +474,7 @@ func main() {
 	init_config()
 	bucket := connect_couchbase("imageinfo")
 	//bucket.Set("i_test", 0, []string{"an", "example", "list"})
-	ob := []string{}
+	ob := map[string]interface{}{}
 	err1 := bucket.Get("i_ACC9D5333CC559EF05F4DFB39446C29EC9320735", &ob)
 	fmt.Println(err1, "|||||||||", ob)
 	fmt.Println(time.Now().Format("2006-01-02 15:04:05") + " server listen 8889:")
