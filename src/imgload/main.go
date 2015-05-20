@@ -29,7 +29,7 @@ type FILE_DATA struct {
 	Num  int
 }
 
-var DEBUG_LEVEl = true
+var DEBUG_LEVEl = false
 
 var _super2dec_arr = map[string]int{
 	"H": 0, "2": 1, "t": 2, "O": 3, "u": 4, "z": 5, "b": 6, "F": 7, "P": 8,
@@ -107,6 +107,8 @@ func imgload(w http.ResponseWriter, r *http.Request) {
 		size = "200"
 	}
 
+	fmt.Println("hash:", hash, "uid:", uid, "sign:", sign)
+
 	if hash != "" && uid != "" && sign != "" {
 		real_uid := uid
 
@@ -127,7 +129,9 @@ func imgload(w http.ResponseWriter, r *http.Request) {
 			encode_level = encode
 		}
 
+		fmt.Println("check_sign params:hash:", hash, "suid:", suid, "encode_level:", encode_level)
 		check_sign := make_imgload_sign(hash, suid, encode_level)
+		fmt.Println("check_sign:", check_sign, "sign:", sign)
 
 		if check_sign != "" && check_sign == sign {
 			client := agent2code(r)
@@ -202,19 +206,27 @@ func get_param(r *http.Request, column string) string {
 func make_imgload_sign(hash string, uid string, encode_level string) string {
 	hash = strings.Trim(hash, " ")
 	uid = strings.Trim(uid, " ")
-	is_match, _ := regexp.MatchString("[A-F0-9]{40}", hash)
+	is_match, _ := regexp.MatchString("^[A-F0-9]{40}$", hash)
 
 	if hash == "" || !is_match || uid == "" {
 		return ""
 	}
 
-	rstr := hash + string(uid[0]) + "@q.115" + uid + string(hash[0]) + "@u.img"
+	is_num, _ := regexp.MatchString("^[0-9]{1,40}$", uid)
+	ufirst := string(uid[0])
+
+	if is_num {
+		ufirst = ""
+	}
+
+	rstr := hash + ufirst + "@q.115" + uid + string(hash[0]) + "@u.img"
 	iencode_level, _ := strconv.Atoi(encode_level)
 
 	if iencode_level > 0 {
 		rstr += encode_level
 	}
 
+	fmt.Println("rstr:", rstr)
 	res := base64_encode(gomd5(rstr, true))
 	res = strings.Replace(res, "/", "-", -1)
 	res = strings.Replace(res, "+", ".", -1)
@@ -224,7 +236,7 @@ func make_imgload_sign(hash string, uid string, encode_level string) string {
 
 /* 获取类型 */
 func get_ttype(hash string) string {
-	fmt.Println("hash:", hash)
+	fmt.Println("couchbase get_ttype hash:", hash)
 	bucket := connect_couchbase("imageinfo")
 	//bucket.Set("i_ACC9D5333CC559EF05F4DFB39446C29EC9320735", 0, map[string]interface{}{"w": 180, "h": 107, "t": "jpeg"})
 	ob := map[string]interface{}{}
@@ -277,12 +289,14 @@ func get_pic_url(hash string, stype string, cache_time int, static_gif bool) str
 		return ""
 	}
 
+	fmt.Println("cache_time:", cache_time)
+
 	if cache_time == 0 {
 		cache_time, _ = strconv.Atoi(strconv.FormatInt(time.Now().Unix(), 10))
+		cache_time += 3600
 	}
 
-	fmt.Println("cache_time:", cache_time)
-	//fmt.Println("key:", key, ", per:", per, ", store_path:", store_path, ",cache_time:", cache_time)
+	fmt.Println("key:", key, ", per:", per, ", store_path:", store_path, ",cache_time:", cache_time)
 	//fmt.Println("md5:", gomd5(key+per+store_path+strconv.Itoa(cache_time), true))
 	sign := base64_encode(gomd5(key+per+store_path+strconv.Itoa(cache_time), true))
 	fmt.Println("base64:", sign)
