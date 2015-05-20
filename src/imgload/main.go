@@ -29,7 +29,7 @@ type FILE_DATA struct {
 	Num  int
 }
 
-var DEBUG_LEVEl = false
+var DEBUG_LEVEl = true
 
 var _super2dec_arr = map[string]int{
 	"H": 0, "2": 1, "t": 2, "O": 3, "u": 4, "z": 5, "b": 6, "F": 7, "P": 8,
@@ -65,7 +65,7 @@ func init_config() {
 /* 路由 */
 func route() {
 	http.HandleFunc("/", index)
-	http.HandleFunc("/imgload/", imgload)
+	http.HandleFunc("/imgload", imgload)
 }
 
 /* 首页 */
@@ -84,7 +84,7 @@ func imgload(w http.ResponseWriter, r *http.Request) {
 			return
 		} else {
 			res.State = true
-			fmt.Fprintln(w, json_encode(res))
+			//fmt.Fprintln(w, json_encode(res))
 			return
 		}
 	}()
