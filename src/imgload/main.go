@@ -29,7 +29,7 @@ type FILE_DATA struct {
 	Num  int
 }
 
-var DEBUG_LEVEl = true
+var DEBUG_LEVEl = false
 
 var _super2dec_arr = map[string]int{
 	"H": 0, "2": 1, "t": 2, "O": 3, "u": 4, "z": 5, "b": 6, "F": 7, "P": 8,
