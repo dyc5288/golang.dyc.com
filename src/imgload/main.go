@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/bitly/go-simplejson"
 	"github.com/couchbase/go-couchbase"
@@ -49,6 +50,8 @@ var couchbase_server = map[string]map[int]map[string]string{
 		3: {"ip": "10.10.0.219", "port": "8091", "bucket": "imageinfo", "prefix": "i"},
 		4: {"ip": "10.10.0.220", "port": "8091", "bucket": "imageinfo", "prefix": "i"},
 		5: {"ip": "10.10.0.221", "port": "8091", "bucket": "imageinfo", "prefix": "i"}}}
+
+var CB *couchbase.Bucket
 
 /* 初始化配置 */
 func init_config() {
@@ -237,10 +240,10 @@ func make_imgload_sign(hash string, uid string, encode_level string) string {
 /* 获取类型 */
 func get_ttype(hash string) string {
 	fmt.Println("couchbase get_ttype hash:", hash)
-	bucket := connect_couchbase("imageinfo")
+	connect_couchbase("imageinfo")
 	//bucket.Set("i_ACC9D5333CC559EF05F4DFB39446C29EC9320735", 0, map[string]interface{}{"w": 180, "h": 107, "t": "jpeg"})
 	ob := map[string]interface{}{}
-	err := bucket.Get("i_"+hash, &ob)
+	err := CB.Get("i_"+hash, &ob)
 
 	if err != nil {
 		return ""
@@ -442,30 +445,23 @@ func connect_couchbase(key string) *couchbase.Bucket {
 		return nil
 	}
 
+	err1 := errors.New("no connect")
+
 	for _, server := range conf {
 		u := "http://" + server["ip"] + ":" + server["port"] + "/"
+
+		if CB != nil {
+			return nil
+		}
+
 		fmt.Println("c:", u)
-		client, err := couchbase.Connect(u)
+		CB, err1 = couchbase.GetBucket(u, "default", server["bucket"])
 
-		if err != nil {
-			fmt.Printf("Connect failed %v", err)
+		if err1 != nil {
 			continue
 		}
 
-		cbpool, err := client.GetPool("default")
-		if err != nil {
-			fmt.Printf("Failed to connect to default pool %v", err)
-			continue
-		}
-
-		cbbucket, err := cbpool.GetBucket(server["bucket"])
-
-		if err != nil {
-			fmt.Printf("Failed to connect to bucket %s %v", server["bucket"], err)
-			continue
-		}
-
-		return cbbucket
+		return nil
 	}
 
 	return nil
@@ -507,11 +503,8 @@ func main() {
 	fmt.Println(time.Now().Format("2006-01-02 15:04:05") + " server start:")
 	route()
 	init_config()
-	//bucket := connect_couchbase("imageinfo")
-	//bucket.Set("i_ACC9D5333CC559EF05F4DFB39446C29EC9320735", 0, map[string]interface{}{"w": 180, "h": 107, "t": "jpeg"})
-	//ob := map[string]interface{}{}
-	//err1 := bucket.Get("i_ACC9D5333CC559EF05F4DFB39446C29EC9320735", &ob)
-	//fmt.Println(err1, "|||||||||", ob, ob["t"].(string))
+	res := get_ttype("ACC9D5333CC559EF05F4DFB39446C29EC9320735")
+	fmt.Println("res:", res)
 	fmt.Println(time.Now().Format("2006-01-02 15:04:05") + " server listen 8889:")
 	err := http.ListenAndServe(":8889", nil)
 
