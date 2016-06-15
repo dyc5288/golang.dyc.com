@@ -495,7 +495,7 @@ func json_decode(str string) *simplejson.Json {
 
 /* memcache初始化172.16.0.118 */
 func init_memcache() *memcache.Client {
-	mc_cache := memcache.New("10.10.2.7:11211")
+	mc_cache := memcache.New("10.11.2.7:11211")
 	return mc_cache
 }
 
