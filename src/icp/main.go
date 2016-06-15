@@ -40,7 +40,7 @@ var SCONFIG = map[string]string{
 }
 var memcache_prefix = "y"
 var bcp_rows = 4500
-var ICP_DATA = "/www/web/web/icp/data/notsync"
+var ICP_DATA = "/www/web/icpreport.115.com/data/notsync"
 var RDATA = map[string]map[string]map[string]string{
 	"register": {
 		"ICP_CODE":             {"name": "ICP编码", "length": "14", "index": "1", "default": "44190013100300"},
